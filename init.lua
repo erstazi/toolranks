@@ -33,6 +33,8 @@ function toolranks.get_tool_type(description)
       return NS("hoe")
     elseif string.find(d, "sword") then
       return NS("sword")
+    elseif string.find(d, "shears") then
+      return NS("shears")
     else
       return NS("tool")
     end
