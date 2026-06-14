@@ -12,11 +12,24 @@ toolranks.colors = {
   white = core.get_color_escape_sequence("#ffffff")
 }
 
-local max_speed = tonumber(core.settings:get("toolranks_speed_multiplier")) or 2.0
-local max_use = tonumber(core.settings:get("toolranks_use_multiplier")) or 2.0
-local max_level = tonumber(core.settings:get("toolranks_levels")) or 10
-local level_digs = tonumber(core.settings:get("toolranks_level_digs")) or 500
-local level_multiplier = 1 / max_level
+local MAX_LEVELS = tonumber(core.settings:get("toolranks_levels")) or 10
+local LEVEL_DIGS = tonumber(core.settings:get("toolranks_level_digs")) or 500
+
+local SPEED_PER_LEVEL
+local USES_PER_LEVEL
+do
+  local speed = tonumber(core.settings:get("toolranks_speed_multiplier")) or 2.0
+  local uses  = tonumber(core.settings:get("toolranks_use_multiplier")) or 2.0
+  SPEED_PER_LEVEL = (speed - 1.0) / MAX_LEVELS
+  USES_PER_LEVEL  = (uses  - 1.0) / MAX_LEVELS
+end
+
+local function get_multipliers(level)
+  local speed_multiplier = 1.0 + (level * SPEED_PER_LEVEL)
+  local use_multiplier   = 1.0 + (level * USES_PER_LEVEL)
+
+  return speed_multiplier, use_multiplier
+end
 
 function toolranks.get_tool_type(description)
   if not description then
@@ -43,7 +56,7 @@ end
 
 function toolranks.get_level(uses)
   if type(uses) == "number" and uses > 0 then
-    return math.min(max_level, math.floor(uses / level_digs))
+    return math.min(MAX_LEVELS, math.floor(uses / LEVEL_DIGS))
   end
   return 0
 end
@@ -118,11 +131,10 @@ function toolranks.new_afteruse(itemstack, user, node, digparams)
       to_player = pname,
       gain = 2.0,
     })
-	-- Make tool better by modifying tool_capabilities (if defined)
+    local caps = table.copy(itemdef.tool_capabilities)
+    -- Make tool better by modifying tool_capabilities (if defined)
     if itemdef.tool_capabilities then
-      local speed_multiplier = 1 + (level * level_multiplier * (max_speed - 1))
-      local use_multiplier = 1 + (level * level_multiplier * (max_use - 1))
-      local caps = table.copy(itemdef.tool_capabilities)
+      local speed_multiplier, use_multiplier = get_multipliers(level)
 
       caps.full_punch_interval = caps.full_punch_interval and (caps.full_punch_interval / speed_multiplier)
       caps.punch_attack_uses = caps.punch_attack_uses and (caps.punch_attack_uses * use_multiplier)
@@ -134,13 +146,13 @@ function toolranks.new_afteruse(itemstack, user, node, digparams)
         end
       end
       itemmeta:set_tool_capabilities(caps)
-	end
+    end
   end
 
   -- Old method for compatibility with tools without tool_capabilities defined
   local wear = digparams.wear
   if level > 0 and not itemdef.tool_capabilities then
-    local use_multiplier = 1 + (level * level_multiplier * (max_use - 1))
+    local _, use_multiplier = get_multipliers(level)
     wear = wear / use_multiplier
   end
 
