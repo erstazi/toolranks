@@ -31,6 +31,37 @@ local function get_multipliers(level)
   return speed_multiplier, use_multiplier
 end
 
+function toolranks.get_top_toolrank()
+  return
+    mod_storage:get_int("most_digs"),
+    mod_storage:get_string("most_digs_user")
+end
+
+if mod_storage then
+  core.register_chatcommand("toptoolrank", {
+    description = "Shows the player with the most-used tool.",
+    privs = {
+      interact = true
+    },
+
+    func = function(name, param)
+      local most_digs = mod_storage:get_int("most_digs")
+      local most_digs_user = mod_storage:get_string("most_digs_user")
+
+      if most_digs <= 0 or most_digs_user == "" then
+        return true, "No tool usage has been recorded yet."
+      end
+
+      return true,
+        "Top Tool Rank: " ..
+        most_digs_user ..
+        " (" ..
+        most_digs ..
+        " uses)"
+    end
+  })
+end
+
 function toolranks.get_tool_type(description)
   if not description then
     return NS("tool")
