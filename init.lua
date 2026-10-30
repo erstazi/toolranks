@@ -277,3 +277,11 @@ if core.get_modpath("mcl_tools") then
   -- shears
   toolranks.add_tool("mcl_tools:shears")
 end
+
+if core.get_modpath("rainbow_ore") then
+  -- Rainbow Ore tools
+  toolranks.add_tool("rainbow_ore:rainbow_ore_pickaxe")
+  toolranks.add_tool("rainbow_ore:rainbow_ore_axe")
+  toolranks.add_tool("rainbow_ore:rainbow_ore_shovel")
+  toolranks.add_tool("rainbow_ore:rainbow_ore_sword")
+end
